@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cafe &amp; Wifi | Work-friendly cafes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+
+<header class="navbar">
+    <a class="brand" href="{{ url_for('home') }}">
+        Cafe <span>&amp;</span> Wifi
+    </a>
+
+    <nav class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('home') }}#cafe-list">Cafes</a>
+        <a href="#about">About</a>
+        <a class="nav-cta" href="{{ url_for('add_cafe_page') }}">+ Add a cafe</a>
+
+        {% if is_admin %}
+            <form method="POST" action="{{ url_for('logout') }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="secondary-button">Log out</button>
+            </form>
+        {% else %}
+            <a href="{{ url_for('login') }}">Admin login</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="flash {{ category }}">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    <section class="hero">
+        <span class="eyebrow">YOUR WORKSPACE, YOUR WAY</span>
+
+        <h1>Find your perfect<br>work-friendly cafe<span>.</span></h1>
+
+        <p class="hero-copy">
+            Discover cafes with Wi-Fi, power sockets and everything
+            you need to work, study or relax.
+        </p>
+
+        <form method="get" action="{{ url_for('home') }}" class="search-bar">
+            <input type="text" name="q" value="{{ q }}"
+                   placeholder="Search by location..."
+                   aria-label="Search by location">
+            <button type="submit">Search cafes</button>
+            {% if q %}
+                <a href="{{ url_for('home') }}">Clear search</a>
+            {% endif %}
+        </form>
+    </section>
+
+    <div class="cafe-tools">
+        <a href="{{ url_for('home') }}" class="secondary-button">Show All Cafes</a>
+        <a href="{{ url_for('random_cafe_page') }}" class="secondary-button">Random Cafe</a>
+    </div>
+
+    <section class="cafes">
+        <h2>Explore cafes</h2>
+
+        {# The loop creates a card for every cafe #}
+        <section id="cafe-list" class="cafe-grid" aria-live="polite">
+          {% for cafe in cafes %}
+            <article class="cafe-card">
+              {% if cafe.img_url.startswith('https://') %}
+                <img src="{{ cafe.img_url }}" alt="{{ cafe.name }}" loading="lazy">
+              {% endif %}
+
+              <div class="cafe-card-body">
+                <h3>{{ cafe.name }}</h3>
+                <p>📍 {{ cafe.location }}</p>
+                <p>🪑 {{ cafe.seats }} seats</p>
+                <p>☕ {{ cafe.coffee_price or "Price unavailable" }}</p>
+
+                <div class="amenities">
+                  {% for key, label in [("has_wifi", "Wi-Fi"), ("has_sockets", "Power sockets"),
+                                        ("has_toilet", "Toilet"), ("can_take_calls", "Calls allowed")] %}
+                    <span class="amenity {% if not cafe[key] %}unavailable{% endif %}">
+                      {{ "✓" if cafe[key] else "✕" }} {{ label }}
+                    </span>
+                  {% endfor %}
+                </div>
+
+                <div class="card-actions">
+                  {% if cafe.map_url.startswith('https://') %}
+                    <a href="{{ cafe.map_url }}" target="_blank" rel="noopener noreferrer">View on map ↗</a>
+                  {% endif %}
+
+                  {% if is_admin %}
+                    <a href="{{ url_for('edit_cafe', cafe_id=cafe.id) }}">Edit</a>
+                    <form class="delete-form" method="POST"
+                          action="{{ url_for('delete_cafe', cafe_id=cafe.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          {% else %}
+            <p>No cafes found.</p>
+          {% endfor %}
+        </section>
+    </section>
+
+    <section id="about" class="about-section">
+        <h2>About Cafe &amp; Wifi</h2>
+
+        <p>
+            Cafe &amp; Wifi started as more than a coding project. It is a step
+            in my journey to becoming a better programmer. Built through learning,
+            experimenting, solving problems and turning ideas into something real.
+            This project represents progress, curiosity and the willingness to keep building.
+        </p>
+
+        <span>Every line of code is another step forward.</span>
+    </section>
+
+</main>
+
+<footer>
+    <p>Find your spot. Plug in. Get things done.</p>
+    <small>© 2026 Joseph Eneji.</small>
+</footer>
+
+</body>
+</html>
